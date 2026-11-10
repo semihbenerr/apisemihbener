@@ -1,0 +1,10 @@
+{
+  "key": "quiztactics",
+  "name": "QuizTactics",
+  "version": "1.0.0",
+  "entryAssembly": "SemihBener.Plugin.QuizTactics.dll",
+  "database": "mysql",
+  "auth": "jwt",
+  "migrations": true,
+  "minHostVersion": "1.0.0"
+}

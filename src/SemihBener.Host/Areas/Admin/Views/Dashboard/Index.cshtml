@@ -1,0 +1,81 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Pano";
+    var active = Model.Records.Count(r => r.Status == PluginStatus.Active);
+    var errors = Model.Records.Count(r => r.Status == PluginStatus.Error);
+}
+<h1>Pano</h1>
+
+<div class="grid">
+    <div class="card"><div class="muted">Aktif plugin</div><div class="stat">@active / @Model.Records.Count</div></div>
+    <div class="card"><div class="muted">Hatalı plugin</div><div class="stat" style="color:@(errors > 0 ? "var(--bad)" : "inherit")">@errors</div></div>
+    <div class="card"><div class="muted">Bellek (süreç)</div><div class="stat">@Model.WorkingSetMb MB</div><div class="muted">.NET heap: @Model.ManagedMemoryMb MB</div></div>
+    <div class="card"><div class="muted">Çalışma süresi</div><div class="stat">@((int)Model.Uptime.TotalHours) sa @Model.Uptime.Minutes dk</div><div class="muted">@Model.Environment · host @HostInfo.Version</div></div>
+</div>
+
+<div class="card">
+    <div class="row" style="margin-top:0; justify-content:space-between">
+        <h2 style="margin:0">Plugin'ler</h2>
+        <a class="button" asp-controller="Plugins" asp-action="Upload">Plugin yükle</a>
+    </div>
+    @if (Model.Records.Count == 0)
+    {
+        <p class="muted">Henüz plugin yok. Geliştirme ortamında solution'ı derleyip host'u yeniden başlatın ya da bir zip yükleyin.</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr><th>Key</th><th>Ad</th><th>Sürüm</th><th>Durum</th><th>Veritabanı</th><th>Kimlik</th><th>Limit/dk</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var record in Model.Records)
+                {
+                    <tr>
+                        <td><a asp-controller="Plugins" asp-action="Details" asp-route-id="@record.Key"><code>@record.Key</code></a></td>
+                        <td>@record.Name</td>
+                        <td>@record.Version @if (record.DevelopmentPath is not null) { <span class="muted">(dev)</span> }</td>
+                        <td>
+                            <span class="badge s-@(record.Status)">@record.Status</span>
+                            @if (record.LastError is not null)
+                            {
+                                <div class="muted" style="max-width:340px">@record.LastError</div>
+                            }
+                        </td>
+                        <td>@record.Provider</td>
+                        <td>@record.AuthKind</td>
+                        <td>@record.RequestsPerMinute</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (Model.Catalog.StartupMessages.Count > 0)
+{
+    <div class="card">
+        <h2>Son açılış mesajları</h2>
+        <ul>
+            @foreach (var message in Model.Catalog.StartupMessages)
+            {
+                <li>@message</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="card">
+    <h2>Sistem</h2>
+    <p class="muted">Veri klasörü: <code>@Model.DataPath</code></p>
+    <div class="row">
+        <form asp-action="Restart" method="post" onsubmit="return confirm('Tüm API\'ler birkaç saniye kesilecek. Devam edilsin mi?')">
+            <button type="submit">Yeniden başlat</button>
+        </form>
+        <form asp-action="SafeMode" method="post">
+            <input type="hidden" name="enable" value="@((!Model.SafeModeFile).ToString().ToLowerInvariant())" />
+            <button type="submit" class="secondary">@(Model.SafeModeFile ? "Güvenli modu kapat" : "Güvenli modu aç")</button>
+        </form>
+    </div>
+    <p class="muted">Güvenli mod: bir sonraki açılışta hiçbir plugin yüklenmez, sadece panel çalışır. Bozuk bir plugin host'u açtırmıyorsa kullanılır.</p>
+</div>

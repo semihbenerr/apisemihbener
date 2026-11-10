@@ -1,0 +1,19 @@
+<Project>
+  <!--
+    Tüm projeler için ortak ayarlar ve paket sürümleri.
+    EF Core 9'da kalıyoruz: Pomelo (MySQL) henüz EF Core 10 desteklemiyor.
+    Tüm EF Core paketleri aynı ana sürümde (9.0.x) olmak zorunda.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Version>1.0.0</Version>
+
+    <EfCoreVersion>9.0.*</EfCoreVersion>
+    <PomeloVersion>9.0.0</PomeloVersion>
+    <AspNetCoreVersion>10.0.*</AspNetCoreVersion>
+    <SwaggerUiVersion>9.*</SwaggerUiVersion>
+  </PropertyGroup>
+</Project>

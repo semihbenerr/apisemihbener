@@ -1,0 +1,10 @@
+{
+  "key": "bidclash",
+  "name": "BidClash",
+  "version": "1.0.0",
+  "entryAssembly": "SemihBener.Plugin.BidClash.dll",
+  "database": "mysql",
+  "auth": "jwt",
+  "migrations": true,
+  "minHostVersion": "1.0.0"
+}

@@ -1,0 +1,53 @@
+@model SecurityViewModel
+@{
+    ViewData["Title"] = "Güvenlik";
+}
+<h1>Güvenlik</h1>
+
+<div class="card">
+    <h2>2 adımlı doğrulama</h2>
+    @if (Model.TotpEnabled)
+    {
+        <p><span class="badge s-Active">Açık</span> Girişte doğrulama uygulamasındaki kod isteniyor.</p>
+        <form asp-action="DisableTotp" method="post">
+            <label for="disable-password">Kapatmak için şifreniz</label>
+            <input type="password" id="disable-password" name="password" autocomplete="current-password" />
+            <div class="row"><button type="submit" class="danger">2FA'yı kapat</button></div>
+        </form>
+    }
+    else if (Model.PendingSecret is not null)
+    {
+        <p>Google Authenticator, Microsoft Authenticator veya benzeri bir uygulamaya bu anahtarı elle ekleyin:</p>
+        <p><code>@Model.PendingSecret</code></p>
+        <p class="muted">Hesap adı: @Model.Username · Tür: zamana dayalı (TOTP) · 6 hane · 30 saniye</p>
+        <details>
+            <summary class="muted">otpauth bağlantısı</summary>
+            <p><code>@Model.PendingUri</code></p>
+        </details>
+        <form asp-action="ConfirmTotp" method="post">
+            <label for="code">Uygulamadaki 6 haneli kod</label>
+            <input type="text" id="code" name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" />
+            <div class="row"><button type="submit">Doğrula ve aç</button></div>
+        </form>
+    }
+    else
+    {
+        <p><span class="badge s-Disabled">Kapalı</span> Panelden DLL yüklenebildiği için 2FA'yı açmanız şiddetle önerilir.</p>
+        <form asp-action="StartTotp" method="post">
+            <button type="submit">2FA kurulumunu başlat</button>
+        </form>
+    }
+</div>
+
+<div class="card">
+    <h2>Şifre değiştir</h2>
+    <form asp-action="ChangePassword" method="post">
+        <label for="currentPassword">Mevcut şifre</label>
+        <input type="password" id="currentPassword" name="currentPassword" autocomplete="current-password" />
+        <label for="newPassword">Yeni şifre (en az 12 karakter)</label>
+        <input type="password" id="newPassword" name="newPassword" autocomplete="new-password" />
+        <label for="confirmPassword">Yeni şifre tekrar</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" />
+        <div class="row"><button type="submit">Şifreyi değiştir</button></div>
+    </form>
+</div>

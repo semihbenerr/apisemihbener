@@ -1,0 +1,27 @@
+# Lokal geliştirme için MySQL 8.4
+# Başlat:  docker compose up -d
+# Durdur:  docker compose down        (veriler mysql-data volume'unda kalır)
+# Sıfırla: docker compose down -v     (tüm veriler silinir, init script tekrar çalışır)
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: semihbener-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: dev_root_password
+    ports:
+      - "3306:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pdev_root_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql-data:

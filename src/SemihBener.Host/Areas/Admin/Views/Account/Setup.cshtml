@@ -1,0 +1,29 @@
+@model SetupViewModel
+@{
+    ViewData["Title"] = "İlk kurulum";
+}
+<div class="card narrow">
+    <h1>İlk kurulum</h1>
+    <p class="muted">Panel için tek admin hesabını oluşturun. Bu sayfa hesap oluşturulduktan sonra kapanır.</p>
+    @if (Model.Error is not null)
+    {
+        <div class="alert bad">@Model.Error</div>
+    }
+    <form asp-action="Setup" method="post">
+        @if (Model.RequiresToken)
+        {
+            <label asp-for="SetupToken">Kurulum anahtarı</label>
+            <input type="password" asp-for="SetupToken" autocomplete="off" />
+            <p class="muted">Sunucudaki appsettings.Production.json dosyasında <code>Admin:SetupToken</code> olarak tanımlı değer (en az 16 karakter).</p>
+        }
+        <label asp-for="Username">Kullanıcı adı</label>
+        <input type="text" asp-for="Username" autocomplete="username" />
+        <label asp-for="Password">Şifre (en az 12 karakter)</label>
+        <input type="password" asp-for="Password" autocomplete="new-password" />
+        <label asp-for="ConfirmPassword">Şifre tekrar</label>
+        <input type="password" asp-for="ConfirmPassword" autocomplete="new-password" />
+        <div class="row">
+            <button type="submit">Hesabı oluştur</button>
+        </div>
+    </form>
+</div>

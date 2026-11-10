@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Plugin yükle";
+}
+<h1>Plugin yükle</h1>
+
+<div class="card">
+    <form asp-action="Upload" method="post" enctype="multipart/form-data">
+        <label for="package">Plugin zip dosyası (en fazla 50 MB)</label>
+        <input type="file" id="package" name="package" accept=".zip" />
+        <div class="row">
+            <button type="submit">Yükle</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Zip nasıl hazırlanır</h2>
+    <p>Repodaki script plugin'i derler, host'ta zaten bulunan DLL'leri çıkarır ve zip'ler:</p>
+    <p><code>.\tools\pack-plugin.ps1 -Plugin SemihBener.Plugin.QuizTactics</code></p>
+    <p class="muted">Çıktı: <code>artifacts/SemihBener.Plugin.QuizTactics-1.0.0.zip</code>. Zip'in kökünde <code>plugin.json</code> ve plugin DLL'i olmalı.</p>
+    <h2>Sonraki adımlar</h2>
+    <ol>
+        <li>Plugin sayfasında veritabanı bağlantısını girin ve test edin.</li>
+        <li>Yeniden başlatın.</li>
+        <li>"Tabloları oluştur / güncelle" ile migration'ları uygulayın.</li>
+        <li><code>/api/{key}/health</code> ucunu kontrol edin.</li>
+    </ol>
+    <p class="muted">Aynı key ile daha yüksek sürüm yüklemek güncellemedir; önceki sürüm geri almak için saklanır.</p>
+</div>

@@ -1,0 +1,23 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Giriş";
+}
+<div class="card narrow">
+    <h1>Panel girişi</h1>
+    @if (Model.Error is not null)
+    {
+        <div class="alert bad">@Model.Error</div>
+    }
+    <form asp-action="Login" method="post">
+        <input type="hidden" asp-for="ReturnUrl" />
+        <label asp-for="Username">Kullanıcı adı</label>
+        <input type="text" asp-for="Username" autocomplete="username" autofocus />
+        <label asp-for="Password">Şifre</label>
+        <input type="password" asp-for="Password" autocomplete="current-password" />
+        <label asp-for="TotpCode">Doğrulama kodu (2FA açıksa)</label>
+        <input type="text" asp-for="TotpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" />
+        <div class="row">
+            <button type="submit">Giriş yap</button>
+        </div>
+    </form>
+</div>

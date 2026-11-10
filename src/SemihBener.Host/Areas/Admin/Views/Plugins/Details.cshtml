@@ -1,0 +1,217 @@
+@model PluginDetailsViewModel
+@{
+    var r = Model.Record;
+    ViewData["Title"] = r.Name;
+    var isActive = Model.Loaded is { IsActive: true };
+    var hasDatabase = r.Provider != DatabaseProvider.None;
+    var placeholder = r.Provider == DatabaseProvider.SqlServer
+        ? "Server=SUNUCU;Database=VERITABANI;User Id=KULLANICI;Password=SIFRE;TrustServerCertificate=True;"
+        : "Server=SUNUCU;Port=3306;Database=DB_" + r.Name + ";User=KULLANICI;Password=SIFRE;";
+}
+<h1>@r.Name <span class="muted">· @r.Key · @r.Version</span></h1>
+
+<div class="card">
+    <div class="row" style="margin-top:0">
+        <span class="badge s-@(r.Status)">@r.Status</span>
+        @if (!r.Enabled)
+        {
+            <span class="badge s-Disabled">Kapalı</span>
+        }
+        <span class="muted">Veritabanı: @r.Provider · Kimlik: @r.AuthKind · Migration: @(r.MigrationsEnabled ? "açık" : "kapalı")</span>
+    </div>
+    @if (r.LastError is not null)
+    {
+        <div class="alert bad" style="margin-top:12px">@r.LastError</div>
+    }
+    <p style="margin-bottom:0">
+        Uç noktalar: <code>/api/@(r.Key)/...</code> ·
+        <a href="/api/@(r.Key)/health" target="_blank" rel="noopener">health</a>
+        @if (isActive)
+        {
+            <text> · </text><a href="/swagger/index.html?urls.primaryName=@(Uri.EscapeDataString(r.Name + " API"))" target="_blank" rel="noopener">swagger</a>
+        }
+    </p>
+    @if (r.DevelopmentPath is not null)
+    {
+        <p class="muted">Geliştirme modu: <code>@r.DevelopmentPath</code></p>
+    }
+</div>
+
+@if (hasDatabase)
+{
+    <div class="card">
+        <h2>Veritabanı (@r.Provider)</h2>
+        <p class="muted">
+            Kayıtlı bağlantı:
+            @if (Model.HasConnectionString)
+            {
+                <code>@Model.ConnectionStringMasked</code>
+            }
+            else
+            {
+                <strong>yok</strong>
+            }
+        </p>
+        <form asp-action="SaveDatabase" asp-route-id="@r.Key" method="post">
+            <label for="connectionString">Yeni bağlantı (boş bırakılırsa mevcut korunur)</label>
+            <textarea id="connectionString" name="connectionString" placeholder="@placeholder" autocomplete="off"></textarea>
+            @if (r.Provider == DatabaseProvider.MySql)
+            {
+                <label for="mySqlServerVersion">MySQL sürümü (Natro panelinde yazan)</label>
+                <input type="text" id="mySqlServerVersion" name="mySqlServerVersion" value="@r.MySqlServerVersion" placeholder="@PluginDbOptions.DefaultMySqlServerVersion" />
+                <p class="muted">Örnek: <code>8.0.36-mysql</code>, <code>5.7.44-mysql</code>, <code>10.11.0-mariadb</code></p>
+            }
+            <div class="row">
+                <button type="submit">Kaydet</button>
+                <button type="submit" class="secondary" asp-action="TestDatabase" asp-route-id="@r.Key">Bağlantıyı test et</button>
+            </div>
+        </form>
+
+        @if (isActive)
+        {
+            <h2 style="margin-top:20px">Tablolar ve migration'lar</h2>
+            @if (Model.DatabaseStatusError is not null)
+            {
+                <div class="alert bad">@Model.DatabaseStatusError</div>
+            }
+            @if (Model.DatabaseStatus.Count == 0)
+            {
+                <p class="muted">Bu plugin DbContext kaydetmemiş.</p>
+            }
+            else
+            {
+                <table>
+                    <thead><tr><th>Context</th><th>Bağlantı</th><th>Uygulanmış</th><th>Bekleyen</th></tr></thead>
+                    <tbody>
+                        @foreach (var status in Model.DatabaseStatus)
+                        {
+                            <tr>
+                                <td>@status.ContextName</td>
+                                <td>@(status.CanConnect ? "✓" : "✗") @status.Error</td>
+                                <td>@status.Applied.Count</td>
+                                <td>
+                                    @if (status.Pending.Count == 0)
+                                    {
+                                        <span class="muted">yok</span>
+                                    }
+                                    else
+                                    {
+                                        foreach (var migration in status.Pending)
+                                        {
+                                            <div><code>@migration</code></div>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            <div class="row">
+                @if (r.MigrationsEnabled)
+                {
+                    <form asp-action="Migrate" asp-route-id="@r.Key" method="post" onsubmit="return confirm('Bekleyen migration\'lar veritabanına uygulanacak. Devam edilsin mi?')">
+                        <button type="submit">Tabloları oluştur / güncelle</button>
+                    </form>
+                    <a class="button secondary" asp-action="Script" asp-route-id="@r.Key">SQL script indir</a>
+                }
+                else
+                {
+                    <span class="muted">Migration kapalı: bu plugin mevcut bir veritabanını kullanıyor, API tabloları değiştirmez.</span>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="muted">Migration işlemleri için plugin'in aktif olması gerekiyor: bağlantıyı girin, test edin ve yeniden başlatın.</p>
+        }
+    </div>
+}
+
+@if (r.AuthKind != PluginAuthKind.None)
+{
+    <div class="card">
+        <h2>Kimlik doğrulama (@r.AuthKind)</h2>
+        @if (r.AuthKind == PluginAuthKind.Jwt)
+        {
+            <p>Issuer: <code>@r.JwtIssuer</code> · Audience: <code>@r.JwtAudience</code></p>
+            <p class="muted">İmza anahtarı şifreli saklanır ve bu plugin'e özeldir; başka plugin'in token'ı burada geçmez.</p>
+        }
+        else
+        {
+            <p>Uygulamalar her istekte <code>X-Api-Key</code> başlığını gönderir:</p>
+            <p><code>@(Model.ApiKey ?? "okunamadı — yeni anahtar üretin")</code></p>
+        }
+        <form asp-action="RegenerateSecret" asp-route-id="@r.Key" method="post" onsubmit="return confirm('Eski anahtar yeniden başlatınca geçersiz olacak. Devam edilsin mi?')">
+            <button type="submit" class="secondary">@(r.AuthKind == PluginAuthKind.Jwt ? "Yeni JWT anahtarı üret" : "Yeni API anahtarı üret")</button>
+        </form>
+    </div>
+}
+
+<div class="card">
+    <h2>Ayarlar</h2>
+    <form asp-action="SaveSettings" asp-route-id="@r.Key" method="post">
+        <div class="grid">
+            <div>
+                <label for="requestsPerMinute">Rate limit (istek/dakika, kullanıcı veya IP başına)</label>
+                <input type="number" id="requestsPerMinute" name="requestsPerMinute" value="@r.RequestsPerMinute" min="1" />
+            </div>
+            <div>
+                <label for="jwtExpiryMinutes">Token süresi (dakika)</label>
+                <input type="number" id="jwtExpiryMinutes" name="jwtExpiryMinutes" value="@r.JwtExpiryMinutes" min="5" />
+            </div>
+        </div>
+        <label for="corsOrigins">CORS: izinli web siteleri (her satıra bir adres)</label>
+        <textarea id="corsOrigins" name="corsOrigins" placeholder="https://quiztactics.vercel.app">@Model.CorsText</textarea>
+        <p class="muted">Sadece tarayıcıdan doğrudan çağıran siteler için gerekir. Mobil uygulamalar ve sunucu tarafı çağrılar için gerekmez.</p>
+        <label for="customSettings">Özel ayarlar (her satıra anahtar=değer)</label>
+        <textarea id="customSettings" name="customSettings">@Model.SettingsText</textarea>
+        <div class="row"><button type="submit">Kaydet</button></div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Sürümler</h2>
+    @if (r.InstalledVersions.Count == 0)
+    {
+        <p class="muted">Yüklenmiş zip sürümü yok (geliştirme modu).</p>
+    }
+    else
+    {
+        <table>
+            <thead><tr><th>Sürüm</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var version in r.InstalledVersions.OrderByDescending(v => Version.TryParse(v, out var parsed) ? parsed : new Version(0, 0)))
+                {
+                    <tr>
+                        <td><code>@version</code> @if (version == r.Version && r.DevelopmentPath is null) { <span class="badge s-Active">seçili</span> }</td>
+                        <td>
+                            @if (version != r.Version || r.DevelopmentPath is not null)
+                            {
+                                <form asp-action="ActivateVersion" asp-route-id="@r.Key" method="post">
+                                    <input type="hidden" name="version" value="@version" />
+                                    <button type="submit" class="secondary">Bu sürüme geç</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<div class="card">
+    <h2>Yönetim</h2>
+    <div class="row" style="margin-top:0">
+        <form asp-action="Toggle" asp-route-id="@r.Key" method="post">
+            <button type="submit" class="secondary">@(r.Enabled ? "Plugin'i kapat" : "Plugin'i aç")</button>
+        </form>
+    </div>
+    <form asp-action="Delete" asp-route-id="@r.Key" method="post" style="margin-top:16px">
+        <label for="confirmKey">Silmek için key'i yazın: <code>@r.Key</code></label>
+        <input type="text" id="confirmKey" name="confirmKey" autocomplete="off" style="max-width:240px" />
+        <div class="row"><button type="submit" class="danger">Plugin'i sil</button></div>
+        <p class="muted">Plugin dosyaları ve ayarları silinir. Veritabanına dokunulmaz.</p>
+    </form>
+</div>

@@ -1,0 +1,97 @@
+@inject HostStateStore Store
+@inject PluginCatalog Catalog
+@{
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var restartRequired = signedIn && Store.Snapshot().RestartRequired;
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@(ViewData["Title"] ?? "Panel") · api.semihbener.com</title>
+    <style>
+        :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --muted:#677084; --line:#e2e5eb; --accent:#2f5bea; --ok:#1f8a4c; --warn:#b26a00; --bad:#c62f2f; }
+        * { box-sizing: border-box; }
+        body { margin:0; font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink); }
+        header { background:#141a26; color:#fff; padding:0 20px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; min-height:52px; }
+        header .brand { font-weight:600; }
+        header nav { display:flex; gap:14px; flex:1; flex-wrap:wrap; }
+        header a { color:#cfd6e4; text-decoration:none; }
+        header a:hover { color:#fff; }
+        header form { margin:0; }
+        main { max-width:1100px; margin:0 auto; padding:20px; }
+        h1 { font-size:22px; margin:4px 0 16px; }
+        h2 { font-size:16px; margin:0 0 12px; }
+        .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px; margin-bottom:16px; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+        .stat { font-size:20px; font-weight:600; }
+        .muted { color:var(--muted); }
+        table { width:100%; border-collapse:collapse; }
+        th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+        th { font-weight:600; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.03em; }
+        input[type=text], input[type=password], input[type=number], textarea, select { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font:inherit; background:#fff; }
+        textarea { min-height:70px; font-family:ui-monospace,Consolas,monospace; font-size:13px; }
+        label { display:block; font-weight:600; margin:10px 0 4px; }
+        .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+        button, .button { display:inline-block; padding:8px 14px; border-radius:6px; border:1px solid var(--accent); background:var(--accent); color:#fff; font:inherit; cursor:pointer; text-decoration:none; }
+        button.secondary, .button.secondary { background:#fff; color:var(--accent); }
+        button.danger { background:var(--bad); border-color:var(--bad); }
+        button.link { background:none; border:none; color:#cfd6e4; padding:0; }
+        .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid currentColor; }
+        .s-Active { color:var(--ok); } .s-Error { color:var(--bad); } .s-Pending { color:var(--warn); } .s-Disabled { color:var(--muted); }
+        .alert { padding:10px 14px; border-radius:6px; margin-bottom:14px; border:1px solid; }
+        .alert.ok { background:#eaf6ef; border-color:#b9e0c8; color:#14532d; }
+        .alert.bad { background:#fdeeee; border-color:#f3c2c2; color:#7f1d1d; }
+        .alert.warn { background:#fff6e5; border-color:#f1d49b; color:#6b4300; }
+        code { font-family:ui-monospace,Consolas,monospace; font-size:13px; background:#f0f2f6; padding:1px 5px; border-radius:4px; word-break:break-all; }
+        .narrow { max-width:420px; margin:40px auto; }
+    </style>
+</head>
+<body>
+    <header>
+        <span class="brand">api.semihbener.com</span>
+        @if (signedIn)
+        {
+            <nav>
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Pano</a>
+                <a asp-area="Admin" asp-controller="Plugins" asp-action="Upload">Plugin yükle</a>
+                <a asp-area="Admin" asp-controller="Logs" asp-action="Index">Loglar</a>
+                <a asp-area="Admin" asp-controller="Account" asp-action="Security">Güvenlik</a>
+                @if (Catalog.Active.Any())
+                {
+                    <a href="/swagger" target="_blank" rel="noopener">Swagger</a>
+                }
+            </nav>
+            <form asp-area="Admin" asp-controller="Account" asp-action="Logout" method="post">
+                <button type="submit" class="link">Çıkış (@User.Identity?.Name)</button>
+            </form>
+        }
+    </header>
+    <main>
+        @if (restartRequired)
+        {
+            <div class="alert warn row" style="margin-top:0">
+                <span style="flex:1">Bazı değişiklikler yeniden başlatınca geçerli olacak. Yeniden başlatma birkaç saniye tüm API'leri keser.</span>
+                <form asp-area="Admin" asp-controller="Dashboard" asp-action="Restart" method="post">
+                    <button type="submit">Şimdi yeniden başlat</button>
+                </form>
+            </div>
+        }
+        @if (signedIn && Catalog.SafeMode)
+        {
+            <div class="alert bad">Güvenli mod açık: hiçbir plugin yüklenmedi, API'ler kapalı.</div>
+        }
+        @if (TempData["Flash"] is string flash)
+        {
+            <div class="alert ok">@flash</div>
+        }
+        @if (TempData["FlashError"] is string flashError)
+        {
+            <div class="alert bad">@flashError</div>
+        }
+        @RenderBody()
+    </main>
+</body>
+</html>

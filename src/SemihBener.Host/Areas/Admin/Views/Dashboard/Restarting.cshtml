@@ -1,0 +1,21 @@
+@model bool
+@{
+    ViewData["Title"] = "Yeniden başlatılıyor";
+    var isDevelopment = Model;
+}
+@if (!isDevelopment)
+{
+    <meta http-equiv="refresh" content="8;url=/admin" />
+}
+<div class="card narrow">
+    <h1>Yeniden başlatılıyor…</h1>
+    @if (isDevelopment)
+    {
+        <p>Geliştirme ortamında süreç kapanır. Uygulamayı Visual Studio'dan tekrar başlatın.</p>
+    }
+    else
+    {
+        <p>IIS uygulamayı ilk istekte tekrar açacak. Birkaç saniye içinde panele yönlendirileceksiniz.</p>
+        <p class="muted">Açılmazsa sayfayı yenileyin.</p>
+    }
+</div>

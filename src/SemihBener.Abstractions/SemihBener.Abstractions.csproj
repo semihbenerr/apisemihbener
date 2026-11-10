@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Host ile plugin'ler arasındaki ortak sözleşme.
+    Plugin'ler sadece bu projeye referans verir. Buradaki paketler host'ta da bulunduğu için
+    çalışma zamanında her zaman host'un kopyaları kullanılır (tip uyumu bozulmaz).
+  -->
+  <PropertyGroup>
+    <RootNamespace>SemihBener.Abstractions</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="$(EfCoreVersion)" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="$(EfCoreVersion)" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="$(PomeloVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(AspNetCoreVersion)" />
+  </ItemGroup>
+
+</Project>

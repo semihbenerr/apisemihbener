@@ -1,0 +1,10 @@
+{
+  "key": "football",
+  "name": "Football",
+  "version": "1.0.0",
+  "entryAssembly": "SemihBener.Plugin.Football.dll",
+  "database": "mysql",
+  "auth": "apikey",
+  "migrations": true,
+  "minHostVersion": "1.0.0"
+}

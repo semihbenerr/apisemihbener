@@ -1,0 +1,10 @@
+{
+  "key": "ehlikurban",
+  "name": "EhliKurban",
+  "version": "1.0.0",
+  "entryAssembly": "SemihBener.Plugin.EhliKurban.dll",
+  "database": "mssql",
+  "auth": "apikey",
+  "migrations": false,
+  "minHostVersion": "1.0.0"
+}

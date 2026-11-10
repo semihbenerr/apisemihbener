@@ -1,0 +1,48 @@
+@model LogsViewModel
+@{
+    ViewData["Title"] = "Loglar";
+}
+<h1>Loglar</h1>
+
+<div class="card">
+    <form method="get" asp-action="Index" class="row" style="margin-top:0">
+        <select name="plugin" style="max-width:240px" onchange="this.form.submit()">
+            <option value="">Tümü</option>
+            @foreach (var key in Model.PluginKeys)
+            {
+                <option value="@key" selected="@(key == Model.SelectedPlugin)">@key</option>
+            }
+        </select>
+        <span class="muted">Son 300 uyarı ve hata. Tam kayıtlar: App_Data/logs</span>
+    </form>
+</div>
+
+<div class="card">
+    @if (Model.Entries.Count == 0)
+    {
+        <p class="muted">Kayıt yok.</p>
+    }
+    else
+    {
+        <table>
+            <thead><tr><th>Zaman (UTC)</th><th>Seviye</th><th>Kaynak</th><th>Mesaj</th></tr></thead>
+            <tbody>
+                @foreach (var entry in Model.Entries)
+                {
+                    <tr>
+                        <td style="white-space:nowrap">@entry.TimestampUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td><span class="badge @(entry.Level >= LogLevel.Error ? "s-Error" : "s-Pending")">@entry.Level</span></td>
+                        <td class="muted" style="max-width:220px; word-break:break-all">@entry.Category</td>
+                        <td>
+                            @entry.Message
+                            @if (entry.Exception is not null)
+                            {
+                                <details><summary class="muted">Ayrıntı</summary><pre style="white-space:pre-wrap; font-size:12px">@entry.Exception</pre></details>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

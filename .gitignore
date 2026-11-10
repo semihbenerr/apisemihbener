@@ -1,0 +1,20 @@
+# Build
+bin/
+obj/
+artifacts/
+publish/
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# Host çalışma verisi (plugin dosyaları, şifreleme anahtarları, ayarlar, loglar)
+**/App_Data/
+
+# Gerçek sırlar asla repoya girmez
+**/appsettings.Production.json
+**/appsettings.Local.json
+*.pfx
+.env
