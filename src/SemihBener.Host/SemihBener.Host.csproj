@@ -9,6 +9,13 @@
     <ProjectReference Include="..\SemihBener.Abstractions\SemihBener.Abstractions.csproj" />
   </ItemGroup>
 
+  <!-- Çalışma verisi (host-state.json, anahtarlar, plugin dosyaları) asla publish çıktısına girmesin. -->
+  <ItemGroup>
+    <Content Remove="App_Data\**" />
+    <None Remove="App_Data\**" />
+    <EmbeddedResource Remove="App_Data\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="$(SwaggerUiVersion)" />

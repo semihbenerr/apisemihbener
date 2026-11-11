@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "host",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/SemihBener.Host"],
+      "port": 5080
+    }
+  ]
+}
