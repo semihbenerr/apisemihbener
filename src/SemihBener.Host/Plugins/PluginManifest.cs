@@ -21,7 +21,6 @@ public sealed partial class PluginManifest
 
     public DatabaseProvider Provider => Database.Trim().ToLowerInvariant() switch
     {
-        "mysql" => DatabaseProvider.MySql,
         "mssql" or "sqlserver" => DatabaseProvider.SqlServer,
         _ => DatabaseProvider.None
     };
@@ -67,8 +66,8 @@ public sealed partial class PluginManifest
             || !EntryAssembly.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
             || EntryAssembly.IndexOfAny(['/', '\\']) >= 0)
             throw new PluginManifestException("entryAssembly sadece dll dosya adı olmalı (örn. SemihBener.Plugin.X.dll).");
-        if (Database.Trim().ToLowerInvariant() is not ("mysql" or "mssql" or "sqlserver" or "none"))
-            throw new PluginManifestException("database: mysql, mssql veya none olmalı.");
+        if (Database.Trim().ToLowerInvariant() is not ("mssql" or "sqlserver" or "none"))
+            throw new PluginManifestException("database: mssql veya none olmalı.");
         if (Auth.Trim().ToLowerInvariant() is not ("jwt" or "apikey" or "none"))
             throw new PluginManifestException("auth: jwt, apikey veya none olmalı.");
         if (Migrations && Provider == DatabaseProvider.None)

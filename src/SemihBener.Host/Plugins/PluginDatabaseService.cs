@@ -26,7 +26,6 @@ public sealed class PluginDatabaseService(IServiceScopeFactory scopeFactory)
         {
             DbConnection connection = provider switch
             {
-                DatabaseProvider.MySql => new MySqlConnector.MySqlConnection(connectionString),
                 DatabaseProvider.SqlServer => new Microsoft.Data.SqlClient.SqlConnection(connectionString),
                 _ => throw new InvalidOperationException("Bu plugin veritabanı kullanmıyor.")
             };
@@ -109,13 +108,9 @@ public sealed class PluginDatabaseService(IServiceScopeFactory scopeFactory)
             var db = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
             var migrator = db.GetService<IMigrator>();
 
-            // MySQL (Pomelo) idempotent script desteklemez; SQL Server'da idempotent üretilir.
-            var options = plugin.Record.Provider == DatabaseProvider.SqlServer
-                ? MigrationsSqlGenerationOptions.Idempotent
-                : MigrationsSqlGenerationOptions.Default;
-
+            // SQL Server'da idempotent script üretilir (her migration IF NOT EXISTS ile sarılır).
             script.AppendLine($"-- Context: {contextType.Name}");
-            script.AppendLine(migrator.GenerateScript(fromMigration: null, toMigration: null, options));
+            script.AppendLine(migrator.GenerateScript(fromMigration: null, toMigration: null, MigrationsSqlGenerationOptions.Idempotent));
         }
 
         return script.ToString();

@@ -5,29 +5,13 @@ namespace SemihBener.Abstractions;
 
 public static class PluginDbOptions
 {
-    /// <summary>
-    /// MySQL sürümü sabit verilir. AutoDetect açılışta veritabanına bağlanır;
-    /// o an DB kapalıysa plugin hiç açılmaz.
-    /// </summary>
-    public const string DefaultMySqlServerVersion = "8.0.36-mysql";
-
     public static DbContextOptionsBuilder Configure(
         DbContextOptionsBuilder options,
         DatabaseProvider provider,
-        string connectionString,
-        string? mySqlServerVersion = null)
+        string connectionString)
     {
         switch (provider)
         {
-            case DatabaseProvider.MySql:
-                var version = string.IsNullOrWhiteSpace(mySqlServerVersion) ? DefaultMySqlServerVersion : mySqlServerVersion;
-                options.UseMySql(connectionString, ServerVersion.Parse(version), mysql =>
-                {
-                    mysql.EnableRetryOnFailure(3);
-                    mysql.CommandTimeout(30);
-                });
-                break;
-
             case DatabaseProvider.SqlServer:
                 options.UseSqlServer(connectionString, sql =>
                 {
@@ -47,7 +31,7 @@ public static class PluginDbOptions
 /// <summary>
 /// "dotnet ef migrations add" için tasarım zamanı fabrikası. Plugin projesinde bir alt sınıf açılır.
 /// Bağlantı: SB_DESIGN_CONNECTION ortam değişkeni, yoksa <see cref="DefaultConnectionString"/>.
-/// MySQL'de migration üretmek için veritabanına bağlanmak gerekmez (sürüm sabit).
+/// MSSQL'de migration üretmek için veritabanına bağlanmak gerekmez.
 /// </summary>
 public abstract class PluginDesignTimeFactory<TContext> : IDesignTimeDbContextFactory<TContext>
     where TContext : DbContext
@@ -64,7 +48,7 @@ public abstract class PluginDesignTimeFactory<TContext> : IDesignTimeDbContextFa
         }
 
         var builder = new DbContextOptionsBuilder<TContext>();
-        PluginDbOptions.Configure(builder, Provider, connectionString, Environment.GetEnvironmentVariable("SB_MYSQL_VERSION"));
+        PluginDbOptions.Configure(builder, Provider, connectionString);
 
         return (TContext)Activator.CreateInstance(typeof(TContext), builder.Options)!;
     }

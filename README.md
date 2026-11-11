@@ -7,9 +7,9 @@ api.semihbener.com
 ├── /                      → giriş ekranı (/api dışındaki her adres önce şifre ister)
 ├── /admin                 → yönetim paneli (MVC)
 ├── /swagger               → her plugin'in ayrı API dokümanı
-├── /api/quiztactics/...   → QuizTactics plugin'i  ── MySQL  DB_QuizTactics  (JWT)
-├── /api/bidclash/...      → BidClash plugin'i     ── MySQL  DB_BidClash     (JWT)
-├── /api/football/...      → Football plugin'i     ── MySQL  DB_Football     (X-Api-Key)
+├── /api/quiztactics/...   → QuizTactics plugin'i  ── MSSQL  DB_QuizTactics  (JWT)
+├── /api/bidclash/...      → BidClash plugin'i     ── MSSQL  DB_BidClash     (JWT)
+├── /api/football/...      → Football plugin'i     ── MSSQL  DB_Football     (X-Api-Key)
 └── /api/ehlikurban/...    → EhliKurban plugin'i   ── MSSQL  mevcut DB       (X-Api-Key)
 ```
 
@@ -21,31 +21,31 @@ api.semihbener.com
 | `src/SemihBener.Abstractions` | Host ile plugin'ler arasındaki sözleşme (`IApiPlugin`, `PluginControllerBase`, JWT, şifre hash'i). |
 | `plugins/*` | Her uygulamanın API'si: `Controllers/`, `Data/` (DbContext + Migrations), `Contracts/`, `plugin.json`. |
 | `tools/` | `pack-plugin.ps1` (zip üretir), `add-migration.ps1` (migration üretir). |
-| `docker/`, `docker-compose.yml` | Lokal MySQL 8.4 (Natro gibi her uygulamaya ayrı DB ve kullanıcı). |
 
-Host'un ayarları (plugin listesi, şifreli bağlantılar, admin hesabı) `App_Data/host-state.json` dosyasındadır. Host'un açılışı hiçbir veritabanına bağlı değildir: MySQL kapalı olsa bile panel açılır.
+Her plugin MSSQL kullanır: her uygulamaya ayrı veritabanı (Natro'da paketteki 10 MSSQL'den biri). Lokal geliştirmede `.\SQLEXPRESS` yeterlidir.
+
+Host'un ayarları (plugin listesi, şifreli bağlantılar, admin hesabı) `App_Data/host-state.json` dosyasındadır. Host'un açılışı hiçbir veritabanına bağlı değildir: veritabanı kapalı olsa bile panel açılır.
 
 ---
 
 ## 1. Lokal kurulum (ilk kez)
 
-**Gerekenler:** .NET 10 SDK, Docker Desktop, Visual Studio 2022 17.14+ veya 2026.
+**Gerekenler:** .NET 10 SDK, SQL Server (lokalde `.\SQLEXPRESS` yeterli), Visual Studio 2022 17.14+ veya 2026.
 
 ```powershell
-# 1) MySQL'i başlat (DB_QuizTactics, DB_BidClash, DB_Football ve kullanıcıları otomatik oluşur)
-docker compose up -d
+# 1) EF Core aracını kur (bir kez)
+dotnet tool install --global dotnet-ef --version 10.*
 
-# 2) EF Core aracını kur (bir kez)
-dotnet tool install --global dotnet-ef --version 9.*
-
-# 3) MySQL plugin'leri için ilk migration'ları üret
+# 2) Her plugin için ilk migration'ları üret (veritabanına bağlanmaz)
 .\tools\add-migration.ps1 -Plugin SemihBener.Plugin.QuizTactics
 .\tools\add-migration.ps1 -Plugin SemihBener.Plugin.BidClash
 .\tools\add-migration.ps1 -Plugin SemihBener.Plugin.Football
 
-# 4) Tüm solution'ı derle (plugin'ler de derlenmeli)
+# 3) Tüm solution'ı derle (plugin'ler de derlenmeli)
 dotnet build SemihBener.sln
 ```
+
+Veritabanlarını elle oluşturmaya gerek yok: panelde **Tabloları oluştur / güncelle** çalıştırıldığında EF Core veritabanı yoksa (`.\SQLEXPRESS` üzerinde) oluşturur ve tabloları kurar.
 
 Sonra Visual Studio'da `SemihBener.Host`'u başlat (veya `dotnet run --project src/SemihBener.Host`). Tarayıcı `http://localhost:5080/admin` açılır.
 
@@ -54,13 +54,13 @@ Sonra Visual Studio'da `SemihBener.Host`'u başlat (veya `dotnet run --project s
 
    | Plugin | Lokal bağlantı |
    | --- | --- |
-   | quiztactics | `Server=localhost;Port=3306;Database=DB_QuizTactics;User=quiztactics;Password=dev_quiztactics;` |
-   | bidclash | `Server=localhost;Port=3306;Database=DB_BidClash;User=bidclash;Password=dev_bidclash;` |
-   | football | `Server=localhost;Port=3306;Database=DB_Football;User=football;Password=dev_football;` |
-   | ehlikurban | `Server=localhost;Database=EhliKurban;Trusted_Connection=True;TrustServerCertificate=True;` |
+   | quiztactics | `Server=.\SQLEXPRESS;Database=DB_QuizTactics;Trusted_Connection=True;TrustServerCertificate=True;` |
+   | bidclash | `Server=.\SQLEXPRESS;Database=DB_BidClash;Trusted_Connection=True;TrustServerCertificate=True;` |
+   | football | `Server=.\SQLEXPRESS;Database=DB_Football;Trusted_Connection=True;TrustServerCertificate=True;` |
+   | ehlikurban | `Server=.\SQLEXPRESS;Database=EhliKurban;Trusted_Connection=True;TrustServerCertificate=True;` |
 
 3. **Yeniden başlat** (geliştirme ortamında süreç kapanır, Visual Studio'dan tekrar başlat).
-4. MySQL plugin'lerinde **Tabloları oluştur / güncelle**.
+4. Migration'lı plugin'lerde **Tabloları oluştur / güncelle** (EhliKurban hariç; o mevcut DB'yi kullanır).
 5. `/swagger` üzerinden test et. JWT'li uygulamalarda önce `auth/register` → dönen token'ı **Authorize**'a yapıştır. API key'li uygulamalarda anahtar plugin sayfasında yazar.
 
 ### EhliKurban: mevcut veritabanından model üretme
@@ -79,16 +79,16 @@ Scaffold sonrası controller'lar gerçek tablolara göre uyarlanır. EhliKurban'
 ## 2. Yeni bir API eklemek
 
 1. `plugins/SemihBener.Plugin.Football` klasörünü kopyala, adlarını değiştir (`SemihBener.Plugin.YeniApp`), solution'a ekle.
-2. `plugin.json`: `key` (URL öneki, küçük harf), `name`, `version`, `entryAssembly`, `database` (`mysql` / `mssql` / `none`), `auth` (`jwt` / `apikey` / `none`), `migrations`.
+2. `plugin.json`: `key` (URL öneki, küçük harf), `name`, `version`, `entryAssembly`, `database` (`mssql` / `none`), `auth` (`jwt` / `apikey` / `none`), `migrations`.
 3. Controller'lar `PluginControllerBase`'den türer ve **göreli** route kullanır: `[Route("matches")]` → `/api/yeniapp/matches`. Önek, kimlik doğrulama ve rate limit host tarafından eklenir.
 4. Login/register gibi uçlara `[AllowAnonymous]` ve `[StrictRateLimit]` eklenir.
 5. Migration: `.\tools\add-migration.ps1 -Plugin SemihBener.Plugin.YeniApp`
 6. Zip: `.\tools\pack-plugin.ps1 -Plugin SemihBener.Plugin.YeniApp` → `artifacts\SemihBener.Plugin.YeniApp-1.0.0.zip`
-7. Natro'da boş MySQL DB + kullanıcı aç → panelde **Plugin yükle** → bağlantıyı gir, test et → **Yeniden başlat** → **Tabloları oluştur**.
+7. Natro'da boş MSSQL DB + kullanıcı aç → panelde **Plugin yükle** → bağlantıyı gir, test et → **Yeniden başlat** → **Tabloları oluştur**.
 
 **Güncelleme:** `plugin.json`'daki `version`'ı artır, yeniden paketle, yükle. Önceki sürüm saklanır; plugin sayfasından geri dönülebilir.
 
-**Kurallar:** Plugin kendi thread'ini/Timer'ını açmaz (tek app pool'da yakalanmayan hata tüm API'leri düşürür). Plugin'e özel NuGet paketleri zip'e otomatik girer; host'ta olan paketler (EF Core, Pomelo, ASP.NET) her zaman host'tan kullanılır.
+**Kurallar:** Plugin kendi thread'ini/Timer'ını açmaz (tek app pool'da yakalanmayan hata tüm API'leri düşürür). Plugin'e özel NuGet paketleri zip'e otomatik girer; host'ta olan paketler (EF Core, ASP.NET) her zaman host'tan kullanılır.
 
 ---
 
@@ -106,7 +106,7 @@ Scaffold sonrası controller'lar gerçek tablolara göre uyarlanır. EhliKurban'
 3. `publish` klasörüne `appsettings.Production.json` oluştur (`appsettings.Production.example.json`'dan kopyala) ve `Admin:SetupToken` için en az 16 karakterlik rastgele bir değer yaz.
 4. `publish` içeriğini FTP ile subdomain'in köküne yükle.
 5. `https://api.semihbener.com/admin` → kurulum anahtarı ile admin hesabını oluştur → **Güvenlik** sayfasından 2FA'yı aç.
-6. Natro'da her MySQL plugin'i için boş veritabanı ve kullanıcı aç. Panelde MySQL sürümü (örn. `8.0.36-mysql` veya `5.7.44-mysql`) plugin sayfasına girilir.
+6. Natro'da her plugin için boş MSSQL veritabanı ve kullanıcı aç (paketteki 10 MSSQL'den biri). EhliKurban mevcut veritabanını kullanır.
 7. Her plugin için zip'i yükle → bağlantıyı gir → **Yeniden başlat** → **Tabloları oluştur**.
 8. Kontrol: `https://api.semihbener.com/api/{key}/health`
 
@@ -155,4 +155,4 @@ Scaffold sonrası controller'lar gerçek tablolara göre uyarlanır. EhliKurban'
 
 ## Sürümler
 
-.NET 10 üzerinde EF Core **9.0.x** kullanılır: MySQL provider'ı Pomelo henüz EF Core 10'u desteklemiyor. Tüm paket sürümleri `Directory.Build.props` dosyasındadır.
+.NET 10 üzerinde EF Core **10.0.x** kullanılır. Tüm plugin'ler MSSQL olduğu için tek EF provider'ı (`Microsoft.EntityFrameworkCore.SqlServer`) yeterlidir. Tüm paket sürümleri `Directory.Build.props` dosyasındadır.

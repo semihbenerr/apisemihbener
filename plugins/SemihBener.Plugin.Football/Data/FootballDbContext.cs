@@ -32,8 +32,6 @@ public sealed class FootballDbContext(DbContextOptions<FootballDbContext> option
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasCharSet("utf8mb4");
-
         modelBuilder.Entity<FootballMatch>(e =>
         {
             e.ToTable("Matches");
@@ -52,8 +50,8 @@ public sealed class FootballDbContext(DbContextOptions<FootballDbContext> option
 
 public sealed class FootballDesignTimeFactory : PluginDesignTimeFactory<FootballDbContext>
 {
-    protected override DatabaseProvider Provider => DatabaseProvider.MySql;
+    protected override DatabaseProvider Provider => DatabaseProvider.SqlServer;
 
     protected override string DefaultConnectionString =>
-        "Server=localhost;Port=3306;Database=DB_Football;User=football;Password=dev_football;";
+        @"Server=.\SQLEXPRESS;Database=DB_Football;Trusted_Connection=True;TrustServerCertificate=True;";
 }

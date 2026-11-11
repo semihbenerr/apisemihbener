@@ -3,7 +3,7 @@
   "name": "BidClash",
   "version": "1.0.0",
   "entryAssembly": "SemihBener.Plugin.BidClash.dll",
-  "database": "mysql",
+  "database": "mssql",
   "auth": "jwt",
   "migrations": true,
   "minHostVersion": "1.0.0"

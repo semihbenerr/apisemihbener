@@ -3,7 +3,7 @@
   "name": "Football",
   "version": "1.0.0",
   "entryAssembly": "SemihBener.Plugin.Football.dll",
-  "database": "mysql",
+  "database": "mssql",
   "auth": "apikey",
   "migrations": true,
   "minHostVersion": "1.0.0"

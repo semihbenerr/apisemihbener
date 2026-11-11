@@ -104,7 +104,7 @@ public sealed class PluginsController(
     // ---------------- Veritabanı ----------------
 
     [HttpPost]
-    public IActionResult SaveDatabase(string id, string? connectionString, string? mySqlServerVersion)
+    public IActionResult SaveDatabase(string id, string? connectionString)
     {
         var updated = store.UpdatePlugin(id, record =>
         {
@@ -112,8 +112,6 @@ public sealed class PluginsController(
             {
                 record.ConnectionStringProtected = secrets.Protect(connectionString.Trim());
             }
-
-            record.MySqlServerVersion = string.IsNullOrWhiteSpace(mySqlServerVersion) ? null : mySqlServerVersion.Trim();
         });
 
         if (!updated)

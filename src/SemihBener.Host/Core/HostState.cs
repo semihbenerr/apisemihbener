@@ -43,7 +43,6 @@ public sealed class PluginRecord
 
     public DatabaseProvider Provider { get; set; }
     public string? ConnectionStringProtected { get; set; }
-    public string? MySqlServerVersion { get; set; }
     public bool MigrationsEnabled { get; set; }
 
     public PluginAuthKind AuthKind { get; set; }
@@ -67,7 +66,7 @@ public sealed class HostState
 
 /// <summary>
 /// Host ayarlarını App_Data/host-state.json dosyasında tutar.
-/// Host'un açılışı hiçbir veritabanına bağlı değildir: MySQL kapalı olsa bile panel açılır.
+/// Host'un açılışı hiçbir veritabanına bağlı değildir: veritabanı kapalı olsa bile panel açılır.
 /// Yazma işlemi atomiktir (önce .tmp, sonra yer değiştirme).
 /// </summary>
 public sealed class HostStateStore

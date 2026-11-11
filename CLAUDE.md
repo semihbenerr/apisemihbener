@@ -11,22 +11,20 @@ admin panelinden zip ile yüklenir ve `/api/{key}/...` altında yayına girer.
 
 ## Durum (11 Kasım 2026) — buradan devam et
 
-- Kod yazıldı ama **hiç derlenmedi** (yazıldığı ortamda .NET SDK yoktu).
 - Lokal klasör: `C:\Github\Ana Projeler\apisemihbener` (GitHub: `semihbenerr/apisemihbener`, dal `main`).
 - Mimari plan dokümanı: https://claude.ai/artifact/L4wMqKB6sRtoR9hcdyoNDt
 
-### Önce kullanıcıya sorulacak 2 karar (cevap gelmeden kodu bu yönde değiştirme)
+### Alınan kararlar (11 Kasım 2026)
 
-1. **Tüm uygulamalar MSSQL'e mi geçsin?** Natro paketinde 10 MSSQL dahil (önceden kredili sanılıyordu). MySQL sadece bu yüzden seçilmişti ve Pomelo yüzünden EF Core 9'a kilitliyiz. Hepsi MSSQL olursa: Pomelo/MySQL/docker-compose kalkar, EF Core 10'a geçilir, lokal geliştirme mevcut SQL Server'da yapılır. Bedel: 10 DB sınırı (dolarsa sonraki uygulamalar MySQL'e geçer ve EF yine 9'a kilitlenir). Önerilen: MSSQL + EF Core 10.
-2. **EhliKurban bu host'tan çıkarılsın mı?** EhliKurban zaten ayrı ve eksiksiz bir backend: `C:\Github\Ana Projeler\EhliKurban\QurbanPro-Backend` (QurbanPro.WebAPI, .NET 10, EF Core 10, Identity, 47 tablo, migration'lar, şifrelenmiş TC no, iyzico, abonelik). Kendi yayın planı var: Docker ile `api.ehlikurban.com` (`deploy/`). Buradaki EhliKurban plugin'i o tabloları kuralları atlayarak kullanırdı. Önerilen: plugin'i sil, EhliKurban mobil uygulaması QurbanPro.WebAPI'ye bağlansın.
+1. **Tüm uygulamalar MSSQL + EF Core 10.** Pomelo/MySQL/docker-compose kaldırıldı; tüm plugin'ler MSSQL. Lokal geliştirme `.\SQLEXPRESS` üzerinde. Not: 10 MSSQL sınırı dolarsa sonraki uygulamalar için yeniden MySQL/Pomelo (EF 9) değerlendirilir.
+2. **EhliKurban plugin host'ta kalıyor.** Mevcut MSSQL veritabanını kullanır, migration kapalı. (QurbanPro.WebAPI ayrı backend'i bağımsız durumda; bu plugin ondan bağımsız çalışır.)
 
-### Sıradaki işler (kararlardan sonra)
+### Sıradaki işler
 
-1. Kararlara göre kodu güncelle (MSSQL geçişi ve/veya EhliKurban plugin'ini kaldırma; README, docker-compose, `Directory.Build.props` dahil).
-2. `dotnet build SemihBener.sln` → derleme hatalarını düzelt.
-3. Migration'ları üret (`tools/add-migration.ps1`), lokal test: `/admin` kurulum → bağlantılar → yeniden başlat → "Tabloları oluştur" → Swagger.
-4. Natro'da kontrol edilmemiş olanlar: sunucuda **.NET 10 runtime** var mı (Plesk → semihbener.com → .NET ayarları; yoksa self-contained publish), MySQL kullanılacaksa sürümü.
-5. Natro'ya yayın (README bölüm 3).
+1. ~~MSSQL geçişi~~ (yapıldı). Kalan: `dotnet build SemihBener.sln` → derleme hatalarını düzelt.
+2. Migration'ları üret (`tools/add-migration.ps1`), lokal test: `/admin` kurulum → bağlantılar → yeniden başlat → "Tabloları oluştur" → Swagger.
+3. Natro'da kontrol edilmemiş olanlar: sunucuda **.NET 10 runtime** var mı (Plesk → semihbener.com → .NET ayarları; yoksa self-contained publish).
+4. Natro'ya yayın (README bölüm 3).
 
 ## Natro hosting bilgileri
 
@@ -45,14 +43,13 @@ admin panelinden zip ile yüklenir ve `/api/{key}/...` altında yayına girer.
 | --- | --- |
 | `src/SemihBener.Abstractions` | Host–plugin sözleşmesi: `IApiPlugin`, `PluginServiceContext` (`AddDbContext<T>()`, `AddJwtIssuer<T>()`), `PluginControllerBase`, `[StrictRateLimit]`, `JwtTokenIssuer<T>`, `PasswordHasher`, `PluginDesignTimeFactory<T>` |
 | `src/SemihBener.Host` | MVC panel (`Areas/Admin`), plugin yükleyici (`Plugins/`), güvenlik (`Security/`), CORS/OpenAPI/log (`Web/`), `Program.cs` |
-| `plugins/SemihBener.Plugin.*` | QuizTactics (MySQL, JWT), BidClash (MySQL, JWT), Football (MySQL, API key), EhliKurban (MSSQL mevcut DB, API key, migration kapalı) |
+| `plugins/SemihBener.Plugin.*` | QuizTactics (MSSQL, JWT), BidClash (MSSQL, JWT), Football (MSSQL, API key), EhliKurban (MSSQL mevcut DB, API key, migration kapalı) |
 | `tools/` | `pack-plugin.ps1` (panel için zip), `add-migration.ps1` |
-| `docker-compose.yml` | Lokal MySQL 8.4, her uygulamaya ayrı DB ve kullanıcı |
 
 ## Bağlayıcı kararlar (değiştirmeden önce kullanıcıya sor)
 
-- **.NET 10, EF Core 9.0.x** *(yukarıdaki karar 1'e bağlı)*. Pomelo (MySQL) EF Core 10'u desteklemiyor; tüm EF paketleri aynı ana sürümde olmalı. Sürümler `Directory.Build.props` içinde.
-- **Veritabanı** *(karar 1'e bağlı)*: şu an yeni uygulamalar MySQL, EhliKurban MSSQL. Her plugin ayrı DB + ayrı kullanıcı. MySQL `ServerVersion` sabit (AutoDetect yok), `utf8mb4`.
+- **.NET 10, EF Core 10.0.x.** Tek EF provider: `Microsoft.EntityFrameworkCore.SqlServer`. Sürümler `Directory.Build.props` içinde.
+- **Veritabanı: tümü MSSQL.** Her plugin ayrı DB + ayrı kullanıcı. Lokal: `.\SQLEXPRESS`, Windows kimlik doğrulaması. EhliKurban mevcut DB'yi kullanır (migration kapalı).
 - **Host ayarları `App_Data/host-state.json`** (JSON, veritabanı değil): host açılışı hiçbir DB'ye bağlı olmasın. Sırlar Data Protection ile şifreli, anahtarlar `App_Data/keys`.
 - **Plugin yükleme:** `AssemblyLoadContext`, bellekten (stream) yükleme; host'ta bulunan assembly'ler her zaman host'tan gelir (TPA öncelikli). Bir plugin'in hatası sadece onu kapatır; yükleme sırasında süreç çökerse `loading-{key}.marker` sayesinde bir sonraki açılışta otomatik kapanır. Güvenli mod: `App_Data/SAFE_MODE`.
 - **Route/auth/rate limit host tarafından zorlanır** (`PluginRouteConvention`): plugin controller'ları `PluginControllerBase`'den türer ve sadece göreli `[Route("x")]` yazar. Her plugin'in kendi auth şeması (`plugin:{key}`) ve rate limit politikası var; bir plugin'in token'ı/anahtarı diğerinde geçmez.
@@ -63,18 +60,17 @@ admin panelinden zip ile yüklenir ve `/api/{key}/...` altında yayına girer.
 
 ## Plugin yazma kuralları
 
-- `plugin.json` zorunlu: `key` (küçük harf, URL öneki), `name`, `version`, `entryAssembly`, `database` (`mysql`/`mssql`/`none`), `auth` (`jwt`/`apikey`/`none`), `migrations`, `minHostVersion`.
+- `plugin.json` zorunlu: `key` (küçük harf, URL öneki), `name`, `version`, `entryAssembly`, `database` (`mssql`/`none`), `auth` (`jwt`/`apikey`/`none`), `migrations`, `minHostVersion`.
 - Controller'da mutlaka sınıf seviyesinde `[Route("...")]` olmalı (`[ApiController]` attribute routing ister).
 - Login/register uçlarında `[AllowAnonymous]` + `[StrictRateLimit]`.
 - Plugin kendi thread'ini/Timer'ını açmaz (tek app pool: yakalanmayan hata tüm API'leri düşürür).
-- MySQL'de `rowversion` yok; eşzamanlılık için elle artan `Version` sütunu + `IsConcurrencyToken()`.
+- Eşzamanlılık için elle artan `Version` sütunu + `IsConcurrencyToken()` (BidClash örneği). MSSQL'de `rowversion` da kullanılabilir; mevcut kod int `Version` ile kalıyor.
 - Listeler en fazla 100 kayıt döner (`Math.Clamp`).
 
 ## Komutlar
 
 ```powershell
-docker compose up -d
-dotnet tool install --global dotnet-ef --version 9.*
+dotnet tool install --global dotnet-ef --version 10.*
 .\tools\add-migration.ps1 -Plugin SemihBener.Plugin.QuizTactics
 dotnet build SemihBener.sln
 dotnet run --project src/SemihBener.Host        # http://localhost:5080/admin

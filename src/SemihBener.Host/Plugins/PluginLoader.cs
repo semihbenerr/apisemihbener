@@ -160,8 +160,7 @@ public static class PluginLoader
         var database = new PluginDatabaseSettings
         {
             Provider = record.Provider,
-            ConnectionString = secrets.Unprotect(record.ConnectionStringProtected),
-            MySqlServerVersion = record.MySqlServerVersion
+            ConnectionString = secrets.Unprotect(record.ConnectionStringProtected)
         };
 
         JwtSettings? jwt = null;

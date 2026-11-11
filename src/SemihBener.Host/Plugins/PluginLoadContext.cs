@@ -5,7 +5,7 @@ namespace SemihBener.Host.Plugins;
 
 /// <summary>
 /// Her plugin kendi load context'inde yüklenir.
-/// Kural 1: Host'ta bulunan her assembly (ASP.NET Core, EF Core, Pomelo, Abstractions...) her zaman
+/// Kural 1: Host'ta bulunan her assembly (ASP.NET Core, EF Core, Abstractions...) her zaman
 ///          host'tan gelir. Böylece tip uyumu bozulmaz.
 /// Kural 2: Host'ta olmayan, plugin'e özel bağımlılıklar plugin klasöründen yüklenir.
 /// Kural 3: Dosyalar bellekten (stream) yüklenir; IIS DLL'i kilitlemez, güncellemede üzerine yazılabilir.

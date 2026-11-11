@@ -35,8 +35,6 @@ public sealed class QuizTacticsDbContext(DbContextOptions<QuizTacticsDbContext> 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasCharSet("utf8mb4");
-
         modelBuilder.Entity<QuizUser>(e =>
         {
             e.ToTable("Users");
@@ -59,13 +57,13 @@ public sealed class QuizTacticsDbContext(DbContextOptions<QuizTacticsDbContext> 
 }
 
 /// <summary>
-/// "dotnet ef migrations add" için. Varsayılan bağlantı docker-compose'daki lokal MySQL'dir;
+/// "dotnet ef migrations add" için. Varsayılan bağlantı lokal SQL Server (.\SQLEXPRESS, Windows kimlik doğrulaması);
 /// farklı bir veritabanı için SB_DESIGN_CONNECTION ortam değişkeni kullanılır.
 /// </summary>
 public sealed class QuizTacticsDesignTimeFactory : PluginDesignTimeFactory<QuizTacticsDbContext>
 {
-    protected override DatabaseProvider Provider => DatabaseProvider.MySql;
+    protected override DatabaseProvider Provider => DatabaseProvider.SqlServer;
 
     protected override string DefaultConnectionString =>
-        "Server=localhost;Port=3306;Database=DB_QuizTactics;User=quiztactics;Password=dev_quiztactics;";
+        @"Server=.\SQLEXPRESS;Database=DB_QuizTactics;Trusted_Connection=True;TrustServerCertificate=True;";
 }

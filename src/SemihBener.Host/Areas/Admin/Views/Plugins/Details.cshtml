@@ -4,9 +4,7 @@
     ViewData["Title"] = r.Name;
     var isActive = Model.Loaded is { IsActive: true };
     var hasDatabase = r.Provider != DatabaseProvider.None;
-    var placeholder = r.Provider == DatabaseProvider.SqlServer
-        ? "Server=SUNUCU;Database=VERITABANI;User Id=KULLANICI;Password=SIFRE;TrustServerCertificate=True;"
-        : "Server=SUNUCU;Port=3306;Database=DB_" + r.Name + ";User=KULLANICI;Password=SIFRE;";
+    var placeholder = "Server=SUNUCU;Database=VERITABANI;User Id=KULLANICI;Password=SIFRE;TrustServerCertificate=True;";
 }
 <h1>@r.Name <span class="muted">· @r.Key · @r.Version</span></h1>
 
@@ -55,12 +53,6 @@
         <form asp-action="SaveDatabase" asp-route-id="@r.Key" method="post">
             <label for="connectionString">Yeni bağlantı (boş bırakılırsa mevcut korunur)</label>
             <textarea id="connectionString" name="connectionString" placeholder="@placeholder" autocomplete="off"></textarea>
-            @if (r.Provider == DatabaseProvider.MySql)
-            {
-                <label for="mySqlServerVersion">MySQL sürümü (Natro panelinde yazan)</label>
-                <input type="text" id="mySqlServerVersion" name="mySqlServerVersion" value="@r.MySqlServerVersion" placeholder="@PluginDbOptions.DefaultMySqlServerVersion" />
-                <p class="muted">Örnek: <code>8.0.36-mysql</code>, <code>5.7.44-mysql</code>, <code>10.11.0-mariadb</code></p>
-            }
             <div class="row">
                 <button type="submit">Kaydet</button>
                 <button type="submit" class="secondary" asp-action="TestDatabase" asp-route-id="@r.Key">Bağlantıyı test et</button>

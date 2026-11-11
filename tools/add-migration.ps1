@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-  Bir plugin için EF Core migration üretir. MySQL plugin'lerinde veritabanına bağlanmak gerekmez.
+  Bir plugin için EF Core migration üretir. Migration üretmek için veritabanına bağlanmak gerekmez.
 
 .EXAMPLE
   .\tools\add-migration.ps1 -Plugin SemihBener.Plugin.QuizTactics
   .\tools\add-migration.ps1 -Plugin SemihBener.Plugin.BidClash -Name AddAuctionImage
 
 .NOTES
-  Gerekli araç (bir kez): dotnet tool install --global dotnet-ef --version 9.*
+  Gerekli araç (bir kez): dotnet tool install --global dotnet-ef --version 10.*
 #>
 param(
     [Parameter(Mandatory = $true)]

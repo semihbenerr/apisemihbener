@@ -22,7 +22,7 @@ public sealed class Player
     public int AuctionsWon { get; set; }
     public DateTime CreatedAtUtc { get; set; }
 
-    /// <summary>Eşzamanlılık kontrolü: her güncellemede elle artırılır (MySQL'de rowversion yok).</summary>
+    /// <summary>Eşzamanlılık kontrolü: her güncellemede elle artırılır (IsConcurrencyToken).</summary>
     public int Version { get; set; }
 }
 
@@ -66,8 +66,6 @@ public sealed class BidClashDbContext(DbContextOptions<BidClashDbContext> option
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasCharSet("utf8mb4");
-
         modelBuilder.Entity<Player>(e =>
         {
             e.ToTable("Players");
@@ -104,8 +102,8 @@ public sealed class BidClashDbContext(DbContextOptions<BidClashDbContext> option
 
 public sealed class BidClashDesignTimeFactory : PluginDesignTimeFactory<BidClashDbContext>
 {
-    protected override DatabaseProvider Provider => DatabaseProvider.MySql;
+    protected override DatabaseProvider Provider => DatabaseProvider.SqlServer;
 
     protected override string DefaultConnectionString =>
-        "Server=localhost;Port=3306;Database=DB_BidClash;User=bidclash;Password=dev_bidclash;";
+        @"Server=.\SQLEXPRESS;Database=DB_BidClash;Trusted_Connection=True;TrustServerCertificate=True;";
 }

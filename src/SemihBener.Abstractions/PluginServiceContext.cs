@@ -6,8 +6,7 @@ namespace SemihBener.Abstractions;
 public enum DatabaseProvider
 {
     None = 0,
-    MySql = 1,
-    SqlServer = 2
+    SqlServer = 1
 }
 
 public enum PluginAuthKind
@@ -25,7 +24,6 @@ public sealed class PluginDatabaseSettings
 {
     public DatabaseProvider Provider { get; init; }
     public string? ConnectionString { get; init; }
-    public string? MySqlServerVersion { get; init; }
 
     public bool IsConfigured => Provider != DatabaseProvider.None && !string.IsNullOrWhiteSpace(ConnectionString);
 }
@@ -71,10 +69,9 @@ public sealed class PluginServiceContext(
 
         var provider = Database.Provider;
         var connectionString = Database.ConnectionString!;
-        var serverVersion = Database.MySqlServerVersion;
 
         Services.AddDbContext<TContext>(options =>
-            PluginDbOptions.Configure(options, provider, connectionString, serverVersion));
+            PluginDbOptions.Configure(options, provider, connectionString));
 
         _dbContextTypes.Add(typeof(TContext));
     }
