@@ -74,23 +74,37 @@ public sealed class CloudflareOnlyMiddleware(RequestDelegate next, ClientIpResol
     }
 }
 
-/// <summary>/swagger ve /openapi yollarını panel girişi olmadan göstermez (OpenApi:RequireAdminLogin).</summary>
-public sealed class DocsProtectionMiddleware(RequestDelegate next, IConfiguration configuration)
+/// <summary>
+/// Site kapısı: /api/... dışındaki her adres (ana sayfa, panel, Swagger, OpenAPI, bilinmeyen yollar)
+/// önce panel girişi ister. Mobil uygulamalar ve web siteleri /api/... altında kendi
+/// token'ları veya API anahtarlarıyla çalışmaya devam eder.
+/// </summary>
+public sealed class SiteGateMiddleware(RequestDelegate next)
 {
-    private readonly bool _enabled = configuration.GetValue("OpenApi:RequireAdminLogin", true);
+    private static readonly PathString[] PublicPaths =
+    [
+        new("/admin/account/login"),
+        new("/admin/account/setup")
+    ];
 
     public async Task InvokeAsync(HttpContext context)
     {
         var path = context.Request.Path;
-        if (_enabled && (path.StartsWithSegments("/swagger") || path.StartsWithSegments("/openapi")))
+
+        if (path.StartsWithSegments("/api")
+            || PublicPaths.Any(p => path.StartsWithSegments(p, StringComparison.OrdinalIgnoreCase)))
         {
-            var result = await context.AuthenticateAsync(AuthSchemes.Admin);
-            if (!result.Succeeded)
-            {
-                var returnUrl = Uri.EscapeDataString(path + context.Request.QueryString);
-                context.Response.Redirect($"/admin/account/login?returnUrl={returnUrl}");
-                return;
-            }
+            await next(context);
+            return;
+        }
+
+        var result = await context.AuthenticateAsync(AuthSchemes.Admin);
+        if (!result.Succeeded)
+        {
+            var isRoot = path.Value is null or "/";
+            var returnUrl = isRoot ? "" : "?returnUrl=" + Uri.EscapeDataString(path + context.Request.QueryString);
+            context.Response.Redirect("/admin/account/login" + returnUrl);
+            return;
         }
 
         await next(context);

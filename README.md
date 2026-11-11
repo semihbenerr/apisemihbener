@@ -4,8 +4,9 @@ Tek hosting, tek domain, birden fazla bağımsız API. Host bir kez yayınlanır
 
 ```
 api.semihbener.com
+├── /                      → giriş ekranı (/api dışındaki her adres önce şifre ister)
 ├── /admin                 → yönetim paneli (MVC)
-├── /swagger               → her plugin'in ayrı API dokümanı (panel girişi gerekir)
+├── /swagger               → her plugin'in ayrı API dokümanı
 ├── /api/quiztactics/...   → QuizTactics plugin'i  ── MySQL  DB_QuizTactics  (JWT)
 ├── /api/bidclash/...      → BidClash plugin'i     ── MySQL  DB_BidClash     (JWT)
 ├── /api/football/...      → Football plugin'i     ── MySQL  DB_Football     (X-Api-Key)
@@ -130,7 +131,8 @@ Scaffold sonrası controller'lar gerçek tablolara göre uyarlanır. EhliKurban'
 | Plugin rate limit | Plugin başına, kullanıcı (JWT) veya IP başına dakikalık limit | Panel → plugin → Ayarlar |
 | Sıkı limit | `[StrictRateLimit]` uçlarında IP başına dakikada 5 istek | `Protection:StrictRequestsPerMinute` |
 | İstek sınırları | Gövde en fazla 512 KB, istek süresi en fazla 30 sn | `Protection:MaxRequestBodyKb`, `RequestTimeoutSeconds` |
-| Panel | 5 hatalı girişte 15 dk kilit, 2FA, `/swagger` sadece panel girişiyle | — |
+| Site kapısı | `/api/...` dışındaki her adres (ana sayfa, panel, Swagger) önce giriş ister. Mobil uygulamalar `/api` altında kendi token/API key'leriyle çalışır. | — |
+| Panel | 5 hatalı girişte 15 dk kilit, 2FA | — |
 | Çökme koruması | Yüklenirken süreci çökerten plugin bir sonraki açılışta otomatik kapanır (IIS çökme döngüsüne girmez) | — |
 | Güvenli mod | Hiçbir plugin yüklenmez, sadece panel açılır | Panel → Pano, veya `App_Data/SAFE_MODE` dosyası, veya `Host:SafeMode = true` |
 

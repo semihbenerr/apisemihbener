@@ -204,13 +204,16 @@ if (config.GetValue("Host:UseHttpsRedirection", true))
 }
 
 app.UseMiddleware<CloudflareOnlyMiddleware>();
+
+// /api/... dışındaki her adres önce panel girişi ister (ana sayfa, panel, Swagger dahil).
+app.UseMiddleware<SiteGateMiddleware>();
+
 app.UseRouting();
 app.UseRequestTimeouts();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
-app.UseMiddleware<DocsProtectionMiddleware>();
 
 if (openApiEnabled && catalog.Active.Any())
 {
@@ -276,7 +279,7 @@ foreach (var plugin in catalog.Active)
     }
 }
 
-app.MapGet("/", () => Results.Ok(new { service = "api.semihbener.com", timeUtc = DateTime.UtcNow }))
+app.MapGet("/", () => Results.Redirect("/admin"))
     .ExcludeFromDescription();
 
 app.Run();
